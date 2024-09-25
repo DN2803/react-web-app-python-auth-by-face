@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
 // material-ui
@@ -49,6 +49,30 @@ const FirebaseRegister = ({ ...others }) => {
   const [strength, setStrength] = useState(0);
   const [level, setLevel] = useState();
 
+  const navigate = useNavigate();
+
+  const handleRegister = async (name, email, password) => {
+    console.error('Register:', name, email, password);
+    try {
+      const response = await fetch('http://localhost:8080/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name, email, password })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        console.log('Đăng kí thành công:', data);
+        navigate('/');
+      } else {
+        console.error('Lỗi đăng kí:', data.message);
+      }
+    } catch (error) {
+      console.error('Lỗi khi gửi request:', error);
+    }
+  };
+
   const googleHandler = async () => {
     console.error('Register');
   };
@@ -70,7 +94,6 @@ const FirebaseRegister = ({ ...others }) => {
   useEffect(() => {
     changePassword('123456');
   }, []);
-
   return (
     <>
       <Grid container direction="column" justifyContent="center" spacing={2}>
@@ -137,6 +160,8 @@ const FirebaseRegister = ({ ...others }) => {
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           try {
             if (scriptedRef.current) {
+              // Gọi hàm handleRegister để gửi dữ liệu về server
+              await handleRegister(values.fname + ' ' + values.lname, values.email, values.password);
               setStatus({ success: true });
               setSubmitting(false);
             }
@@ -161,6 +186,8 @@ const FirebaseRegister = ({ ...others }) => {
                   name="fname"
                   type="text"
                   defaultValue=""
+                  value={values.fname}
+                  onChange={handleChange}
                   sx={{ ...theme.typography.customInput }}
                 />
               </Grid>
@@ -172,6 +199,8 @@ const FirebaseRegister = ({ ...others }) => {
                   name="lname"
                   type="text"
                   defaultValue=""
+                  value={values.lname}
+                  onChange={handleChange}
                   sx={{ ...theme.typography.customInput }}
                 />
               </Grid>

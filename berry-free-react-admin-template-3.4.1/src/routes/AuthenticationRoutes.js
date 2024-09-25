@@ -15,6 +15,10 @@ const AuthenticationRoutes = {
   element: <MinimalLayout />,
   children: [
     {
+      index: true, // Route mặc định
+      element: <AuthLogin3 /> // Chuyển đến trang login khi truy cập đường dẫn gốc
+    },
+    {
       path: '/pages/login/login3',
       element: <AuthLogin3 />
     },

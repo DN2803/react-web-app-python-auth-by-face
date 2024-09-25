@@ -5,7 +5,7 @@ def create_user(data):
     user = user_model.create_user(data)
     return user
 
-def get_users():
+def get_users_by_email(email):
     user_model = UserModel(db)
-    users = user_model.get_all_users()
-    return list(users)
+    user = user_model.get_user_by_email(email)
+    return user

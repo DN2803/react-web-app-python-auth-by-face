@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
-
+import { useNavigate } from 'react-router-dom';
 // material-ui
 import { useTheme } from '@mui/material/styles';
 import {
@@ -43,14 +43,13 @@ const FirebaseLogin = ({ ...others }) => {
   const matchDownSM = useMediaQuery(theme.breakpoints.down('md'));
   const customization = useSelector((state) => state.customization);
   const [checked, setChecked] = useState(true);
-
+  const navigate = useNavigate();
   const googleHandler = async () => {
     console.error('Login');
   };
   const handleLogin = async (email, password) => {
     console.error('Login:', email, password);
     try {
-      
       const response = await fetch('http://localhost:8080/api/login', {
         method: 'POST',
         headers: {
@@ -58,10 +57,12 @@ const FirebaseLogin = ({ ...others }) => {
         },
         body: JSON.stringify({ email, password })
       });
-  
       const data = await response.json();
       if (response.ok) {
         console.log('Đăng nhập thành công:', data);
+        const token = data.token;
+        localStorage.setItem('token', token);
+        navigate('/dashboard/default');
       } else {
         console.error('Lỗi đăng nhập:', data.message);
       }
