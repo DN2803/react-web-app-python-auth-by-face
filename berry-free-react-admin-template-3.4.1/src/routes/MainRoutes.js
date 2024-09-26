@@ -4,6 +4,7 @@ import { lazy } from 'react';
 import MainLayout from 'layout/MainLayout';
 import Loadable from 'ui-component/Loadable';
 import ProtectedRoute from './ProtectedRoute';
+// import { element } from 'prop-types';
 
 // dashboard routing
 const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')));
@@ -11,7 +12,7 @@ const DashboardDefault = Loadable(lazy(() => import('views/dashboard/Default')))
 // utilities routing
 const UtilsTypography = Loadable(lazy(() => import('views/utilities/Typography')));
 // ...
-
+const DashboardSetting = Loadable(lazy(() => import('views/dashboard/Setting/FaceAuth')));
 // ==============================|| MAIN ROUTING ||============================== //
 
 const MainRoutes = {
@@ -34,6 +35,14 @@ const MainRoutes = {
           element: (
             <ProtectedRoute>
               <DashboardDefault />
+            </ProtectedRoute>
+          )
+        },
+        {
+          path: 'setting',
+          element: (
+            <ProtectedRoute>
+              <DashboardSetting />
             </ProtectedRoute>
           )
         }

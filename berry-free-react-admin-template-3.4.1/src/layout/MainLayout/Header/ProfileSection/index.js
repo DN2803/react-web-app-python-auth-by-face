@@ -62,7 +62,10 @@ const ProfileSection = () => {
     localStorage.removeItem('token');
     navigate('/');
   };
-
+  const handleAccountSetting = () => {
+    console.log('setting');
+    navigate('./dashboard/setting');
+  };
   const handleClose = (event) => {
     if (anchorRef.current && anchorRef.current.contains(event.target)) {
       return;
@@ -252,7 +255,8 @@ const ProfileSection = () => {
                         <ListItemButton
                           sx={{ borderRadius: `${customization.borderRadius}px` }}
                           selected={selectedIndex === 0}
-                          onClick={(event) => handleListItemClick(event, 0, '#')}
+                          // onClick={(event) => handleListItemClick(event, 0, '#')}
+                          onClick={handleAccountSetting}
                         >
                           <ListItemIcon>
                             <IconSettings stroke={1.5} size="1.3rem" />
