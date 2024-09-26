@@ -55,8 +55,12 @@ const ProfileSection = () => {
    * anchorRef is used on different componets and specifying one type leads to other components throwing an error
    * */
   const anchorRef = useRef(null);
+
   const handleLogout = async () => {
     console.log('Logout');
+    // Remove token from localStorage
+    localStorage.removeItem('token');
+    navigate('/');
   };
 
   const handleClose = (event) => {

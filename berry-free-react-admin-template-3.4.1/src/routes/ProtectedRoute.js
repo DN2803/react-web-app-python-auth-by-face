@@ -1,16 +1,22 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from 'path_to_your_auth_context'; // Đường dẫn tới AuthContext
+import PropTypes from 'prop-types'; // Import PropTypes for prop validation
+
+const isAuthenticated = () => {
+  const token = localStorage.getItem('token');
+  return !!token; // Return true if token exists, false otherwise
+};
 
 const ProtectedRoute = ({ children }) => {
-  const { token } = useAuth(); // Lấy token từ AuthContext
-
-  if (!token) {
-    // Nếu không có token, chuyển hướng đến trang đăng nhập
-    return <Navigate to="/pages/login/login3" replace />;
+  if (!isAuthenticated()) {
+    return <Navigate to="/" />; // Redirect to login if not authenticated
   }
+  return children; // Render the children components if authenticated
+};
 
-  return children; // Nếu có token, hiển thị các component con
+// Add propTypes validation for 'children'
+ProtectedRoute.propTypes = {
+  children: PropTypes.node.isRequired // Ensure 'children' prop is passed and is a valid React node
 };
 
 export default ProtectedRoute;
