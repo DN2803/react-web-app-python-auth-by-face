@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 // material-ui
 import { useTheme } from '@mui/material/styles';
 import {
@@ -44,9 +45,10 @@ const FirebaseLogin = ({ ...others }) => {
   const customization = useSelector((state) => state.customization);
   const [checked, setChecked] = useState(true);
   const navigate = useNavigate();
-  const googleHandler = async () => {
-    console.error('Login');
-  };
+  const videoRef = useRef(null);
+  // Dùng useRef để lưu trữ intervalId
+  const intervalIdRef = useRef(null);
+  const [cameraActive, setCameraActive] = useState(false);
   const handleLogin = async (email, password) => {
     console.error('Login:', email, password);
     try {
@@ -62,6 +64,9 @@ const FirebaseLogin = ({ ...others }) => {
         console.log('Đăng nhập thành công:', data);
         const token = data.token;
         localStorage.setItem('token', token);
+        const user = data.token;
+        console.log(user);
+        Cookies.set('user', user, { expires: 1 });
         navigate('/dashboard/default');
       } else {
         console.error('Lỗi đăng nhập:', data.message);
@@ -70,6 +75,69 @@ const FirebaseLogin = ({ ...others }) => {
       console.error('Lỗi khi gửi request:', error);
     }
   };
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      setCameraActive(true)
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play(); // Start video playback
+      }
+
+      // Start sending images to the server every second
+      intervalIdRef.current = setInterval(() => {
+        sendFrameToServer();
+      }, 1000);
+    } catch (err) {
+      console.error("Error accessing the camera: ", err);
+      alert('Unable to access the camera. Please check your permissions.');
+    }
+  };
+  const sendFrameToServer = () => {
+    if (videoRef.current) {
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      canvas.width = videoRef.current.videoWidth; // Set canvas width to video width
+      canvas.height = videoRef.current.videoHeight; // Set canvas height to video height
+      context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height); // Draw the current frame
+
+      // Convert canvas to data URL
+      const imageData = canvas.toDataURL('image/jpeg');
+
+
+      // Send the image data to the server
+      fetch('http://localhost:8080/api/face_authentication', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ image: imageData }),
+      })
+        .then(response => {
+          const data = response.json();
+          if (response.ok) {
+            console.log('Đăng nhập thành công:',data);
+            const token = data.token;
+            localStorage.setItem('token', token);
+            const user = data.token;
+            console.log(user);
+            Cookies.set('user', user, { expires: 1 });
+            //const tracks = stream.getTracks();
+            // tracks.forEach(track => {
+            //     track.stop(); // Dừng mỗi track của video
+            // });// Dừng tất cả các track
+            setCameraActive(false);
+            navigate('/dashboard/default');
+          } else {
+            console.error('Lỗi đăng nhập:', data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+        });
+    }
+  };
+
 
   const [showPassword, setShowPassword] = useState(false);
   const handleClickShowPassword = () => {
@@ -82,13 +150,26 @@ const FirebaseLogin = ({ ...others }) => {
 
   return (
     <>
+      {cameraActive && <div style={{ marginTop: '20px' }}>
+        <video
+          ref={videoRef}
+          width="320"
+          height="240"
+          style={{ border: '1px solid black' }}
+          autoPlay
+          playsInline
+        >
+          {/* Add empty track for accessibility */}
+          <track kind="captions" />
+        </video>
+      </div>}
       <Grid container direction="column" justifyContent="center" spacing={2}>
         <Grid item xs={12}>
           <AnimateButton>
             <Button
               disableElevation
               fullWidth
-              onClick={googleHandler}
+              onClick={startCamera}
               size="large"
               variant="outlined"
               sx={{
@@ -100,7 +181,7 @@ const FirebaseLogin = ({ ...others }) => {
               <Box sx={{ mr: { xs: 1, sm: 2, width: 20 } }}>
                 <img src={Google} alt="google" width={16} height={16} style={{ marginRight: matchDownSM ? 8 : 16 }} />
               </Box>
-              Sign in with Google
+              Sign in with face-auth
             </Button>
           </AnimateButton>
         </Grid>
