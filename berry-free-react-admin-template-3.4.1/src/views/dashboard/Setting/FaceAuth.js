@@ -12,8 +12,8 @@ const FaceAuth = () => {
     const [cameraActive, setCameraActive] = useState(false);
     const videoRef = useRef(null);
     const [email, setEmail] = useState("");
-    const [isFaceIDEnabled, setIsFaceIDEnabled] = useState(false); // Trạng thái FaceID
-    
+    const [isFaceIDEnabled, setIsFaceIDEnabled] = useState(false); // Trạng thái sử dụng FaceID
+    const [isCreateNew, setIsCreateNew] = useState(false);
     // Dùng useRef để lưu trữ intervalId
     const intervalIdRef = useRef(null);
 
@@ -21,58 +21,63 @@ const FaceAuth = () => {
     const authTokenObject = parseCookieToObject('user');
 
     useEffect(() => {
+        const checkFaceAuth = async (userEmail) => {
+            try {
+                const response = await fetch('http://localhost:8080/api/check_face_auth', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email: userEmail }),
+                });
+                if (response.ok) {
+                    setIsFaceIDEnabled(true);
+                }
+            } catch (error) {
+                console.error('Error checking FaceID status:', error);
+                setIsFaceIDEnabled(false);
+            }
+        };
         if (authTokenObject) {
             const user = authTokenObject;
             if (user) {
                 setEmail(user.email); // Set email
-                // Kiểm tra trạng thái FaceID từ server
-                fetch(`/api/check_face_auth/${user.email}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        setIsFaceIDEnabled(data.isFaceIDEnabled); // Cập nhật trạng thái FaceID
-                    })
-                    .catch(error => {
-                        console.error('Error checking FaceID status:', error);
-                    });
+                checkFaceAuth(user.email); // Kiểm tra trạng thái FaceID
             }
         }
     }, [authTokenObject]);
 
     const handleToggle = async (event) => {
-        const newStatus = event.target.checked;
-        setIsFaceIDEnabled(newStatus);
-    
+        const newStatus = event.target.checked; // Trạng thái mới từ toggle
+
         if (newStatus && !isFaceIDEnabled) {
-            try {
-                // Start the camera
-                await startCamera();
-                console.log("Camera started successfully");
-            }
-            catch (error) {
-                console.error('Error updating FaceID status:', error);
-            }
+            // Nếu bật FaceID
+            setIsCreateNew(true)
         } else if (!newStatus && isFaceIDEnabled) {
+            // Nếu tắt FaceID
             try {
-                const response = await fetch(`/api/remove_face_auth`, {
+                const response = await fetch('http://localhost:8080/api/remove_face_auth', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({ email: email }),
                 });
-    
+
                 if (!response.ok) {
                     throw new Error('Failed to update FaceID status');
                 }
-    
+
                 const data = await response.json();
                 console.log('FaceID status updated:', data);
+                setIsFaceIDEnabled(false); // Cập nhật trạng thái FaceID về false
             } catch (error) {
                 console.error('Error updating FaceID status:', error);
             }
         }
     };
-    
+
+
 
     const startCamera = async () => {
         try {
@@ -134,7 +139,7 @@ const FaceAuth = () => {
 
                         videoRef.current.srcObject = null; // Xóa stream khỏi video
                         setCameraActive(false); // Ẩn video element
-                        
+                        setIsFaceIDEnabled(true);
                     }
                 })
                 .catch(error => {
@@ -154,27 +159,6 @@ const FaceAuth = () => {
         <>
             <MainCard title="Setting" secondary={<SecondaryAction link="https://next.material-ui.com/system/typography/" />}>
                 <Grid container spacing={gridSpacing}>
-                    <SubCard title="Create face authentication">
-                        <Fab size="small" color="secondary" aria-label="add">
-                            <AddAPhoto />
-                        </Fab>
-                        {cameraActive && (
-                            <div style={{ marginTop: '20px' }}>
-                                <video
-                                    ref={videoRef}
-                                    width="320"
-                                    height="240"
-                                    style={{ border: '1px solid black' }}
-                                    autoPlay
-                                    playsInline
-                                >
-                                    {/* Add empty track for accessibility */}
-                                    <track kind="captions" />
-                                </video>
-                            </div>
-                        )}
-                    </SubCard>
-
                     <SubCard title="Face ID Settings">
                         <Box display="flex" alignItems="center">
                             <Avatar>
@@ -196,6 +180,28 @@ const FaceAuth = () => {
                             />
                         </Box>
                     </SubCard>
+                    {isCreateNew &&
+                        <SubCard title="Create face authentication">
+                            <Fab size="small" color="secondary" aria-label="add" onClick= {startCamera}>
+                                <AddAPhoto />
+                            </Fab>
+                            {cameraActive && (
+                                <div style={{ marginTop: '20px' }}>
+                                    <video
+                                        ref={videoRef}
+                                        width="320"
+                                        height="240"
+                                        style={{ border: '1px solid black' }}
+                                        autoPlay
+                                        playsInline
+                                    >
+                                        {/* Add empty track for accessibility */}
+                                        <track kind="captions" />
+                                    </video>
+                                </div>
+                            )}
+                        </SubCard>}
+
                 </Grid>
             </MainCard>
         </>

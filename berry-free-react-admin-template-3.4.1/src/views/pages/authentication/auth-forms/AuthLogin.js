@@ -78,7 +78,7 @@ const FirebaseLogin = ({ ...others }) => {
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      setCameraActive(true)
+      setCameraActive(true);
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.play(); // Start video playback
@@ -87,57 +87,59 @@ const FirebaseLogin = ({ ...others }) => {
       // Start sending images to the server every second
       intervalIdRef.current = setInterval(() => {
         sendFrameToServer();
-      }, 1000);
+      }, 5000);
     } catch (err) {
-      console.error("Error accessing the camera: ", err);
+      console.error('Error accessing the camera: ', err);
       alert('Unable to access the camera. Please check your permissions.');
     }
   };
-  const sendFrameToServer = () => {
+  const stopCamera = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject;
+      const tracks = stream.getTracks();
+      // Stop all tracks (camera stream)
+      tracks.forEach((track) => track.stop());
+      // Clear the interval to stop sending frames
+      clearInterval(intervalIdRef.current);
+      setCameraActive(false); // Update state to hide video component
+    }
+  };
+  const sendFrameToServer = async () => {
     if (videoRef.current) {
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('2d');
       canvas.width = videoRef.current.videoWidth; // Set canvas width to video width
       canvas.height = videoRef.current.videoHeight; // Set canvas height to video height
       context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height); // Draw the current frame
-
       // Convert canvas to data URL
       const imageData = canvas.toDataURL('image/jpeg');
-
-
       // Send the image data to the server
-      fetch('http://localhost:8080/api/face_authentication', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ image: imageData }),
-      })
-        .then(response => {
-          const data = response.json();
-          if (response.ok) {
-            console.log('Đăng nhập thành công:',data);
-            const token = data.token;
-            localStorage.setItem('token', token);
-            const user = data.token;
-            console.log(user);
-            Cookies.set('user', user, { expires: 1 });
-            //const tracks = stream.getTracks();
-            // tracks.forEach(track => {
-            //     track.stop(); // Dừng mỗi track của video
-            // });// Dừng tất cả các track
-            setCameraActive(false);
-            navigate('/dashboard/default');
-          } else {
-            console.error('Lỗi đăng nhập:', data.message);
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
+      try {
+        const response = await fetch('http://localhost:8080/api/face_authentication', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ image: imageData })
         });
+        // Await the JSON response
+        const data = await response.json();
+        if (response.ok) {
+          console.log('Đăng nhập thành công:', data);
+          const token = data.token;
+          localStorage.setItem('token', token);
+          Cookies.set('user', token, { expires: 1 });
+          navigate('/dashboard/default');
+          // Tắt camera sau khi đăng nhập thành công
+          stopCamera();
+        } else {
+          console.error('Lỗi đăng nhập:', data.message);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
     }
   };
-
 
   const [showPassword, setShowPassword] = useState(false);
   const handleClickShowPassword = () => {
@@ -150,19 +152,14 @@ const FirebaseLogin = ({ ...others }) => {
 
   return (
     <>
-      {cameraActive && <div style={{ marginTop: '20px' }}>
-        <video
-          ref={videoRef}
-          width="320"
-          height="240"
-          style={{ border: '1px solid black' }}
-          autoPlay
-          playsInline
-        >
-          {/* Add empty track for accessibility */}
-          <track kind="captions" />
-        </video>
-      </div>}
+      {cameraActive && (
+        <div style={{ marginTop: '20px' }}>
+          <video ref={videoRef} width="320" height="240" style={{ border: '1px solid black' }} autoPlay playsInline>
+            {/* Add empty track for accessibility */}
+            <track kind="captions" />
+          </video>
+        </div>
+      )}
       <Grid container direction="column" justifyContent="center" spacing={2}>
         <Grid item xs={12}>
           <AnimateButton>

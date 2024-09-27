@@ -24,8 +24,6 @@ def create_new_auth_method():
     image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
 
     result = face_service.create_new_face_auth(email, image)
-
-    print (result)
     
     # Check if result indicates an error (assuming create_new_user returns a tuple with status)
     if isinstance(result, tuple):
@@ -53,19 +51,28 @@ def face_auth():
    
     token = face_service.authenticate_user_by_face(image)
     
-    if token:
+    if token != (None, None):
         return jsonify({"message": "Login successful", "token": token}), 200
     else:
         return jsonify({"error": "Authentication failed"}), 401
 @app.route('/api/remove_face_auth', methods=['POST'])
 def remove_face_auth():
-    email  = request.json.get('email')
-
+    email = request.json.get('email')
+    print(f"Received email: {email}")
+        
     model = face_model.FaceModel(face_service.db)
-    # Update the status in MongoDB
     updated_user = model.remove_face_feature(email)
-
+        
     if updated_user:  
-        return jsonify({"message": "FaceID status delete successfully", "user": updated_user}), 200
+        return jsonify({"message": "FaceID status deleted successfully"}), 200
+    else:
+        return jsonify({"error": "User not found"}), 404
+@app.route('/api/check_face_auth', methods= ['POST'])
+def check_face_auth():
+    email  = request.json.get('email')
+    model = face_model.FaceModel(face_service.db)
+    is_not_empty = model.have_face_feature(email)
+    if is_not_empty:  
+        return jsonify({"message": "FaceID status True", "user": is_not_empty}), 200
     else:
         return jsonify({"error": "User not found"}), 404
