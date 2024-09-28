@@ -21,6 +21,7 @@ import {
   Typography,
   useMediaQuery
 } from '@mui/material';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
 // third party
 import * as Yup from 'yup';
@@ -49,6 +50,8 @@ const FirebaseRegister = ({ ...others }) => {
   const [strength, setStrength] = useState(0);
   const [level, setLevel] = useState();
 
+  const [errorSignUp, setErrorSignUp] = useState(false);
+
   const navigate = useNavigate();
 
   const handleRegister = async (name, email, password) => {
@@ -67,9 +70,11 @@ const FirebaseRegister = ({ ...others }) => {
         navigate('/');
       } else {
         console.error('Lỗi đăng kí:', data.message);
+        setErrorSignUp(true)
       }
     } catch (error) {
       console.error('Lỗi khi gửi request:', error);
+      setErrorSignUp(true)
     }
   };
 
@@ -274,7 +279,14 @@ const FirebaseRegister = ({ ...others }) => {
                 </Box>
               </FormControl>
             )}
-
+            {
+              errorSignUp && (
+                <div style={{ display: 'flex', alignItems: 'center', color: '#ff6666', marginLeft: '10px' }}>
+                  <WarningAmberIcon style={{ marginRight: '5px' }} />
+                  <p style={{ margin: 10 }}>Email ready in use</p>
+                </div>
+              )
+            }
             <Grid container alignItems="center" justifyContent="space-between">
               <Grid item>
                 <FormControlLabel

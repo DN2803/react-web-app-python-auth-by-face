@@ -21,7 +21,7 @@ import {
   Typography,
   useMediaQuery
 } from '@mui/material';
-
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 // third party
 import * as Yup from 'yup';
 import { Formik } from 'formik';
@@ -49,6 +49,7 @@ const FirebaseLogin = ({ ...others }) => {
   // Dùng useRef để lưu trữ intervalId
   const intervalIdRef = useRef(null);
   const [cameraActive, setCameraActive] = useState(false);
+  const [errorLogin, setErrorLogin] = useState(false);
   const handleLogin = async (email, password) => {
     console.error('Login:', email, password);
     try {
@@ -70,9 +71,11 @@ const FirebaseLogin = ({ ...others }) => {
         navigate('/dashboard/default');
       } else {
         console.error('Lỗi đăng nhập:', data.message);
+        setErrorLogin(true);
       }
     } catch (error) {
       console.error('Lỗi khi gửi request:', error);
+      setErrorLogin(true);
     }
   };
   const startCamera = async () => {
@@ -299,6 +302,14 @@ const FirebaseLogin = ({ ...others }) => {
                 </FormHelperText>
               )}
             </FormControl>
+            {
+              errorLogin && (
+                <div style={{ display: 'flex', alignItems: 'center', color: '#ff6666', marginLeft: '10px' }}>
+                  <WarningAmberIcon style={{ marginRight: '5px' }} />
+                  <p style={{ margin: 10 }}>Account does not exist</p>
+                </div>
+              )
+            }
             <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
               <FormControlLabel
                 control={

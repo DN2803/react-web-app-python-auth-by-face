@@ -1,5 +1,3 @@
-from flask_pymongo import PyMongo
-from pymongo import MongoClient
 from pymongo.errors import DuplicateKeyError
 class UserModel:
     def __init__(self, mongo):
@@ -8,6 +6,8 @@ class UserModel:
 
     def create_user(self, data):
         try:
+            if self.collection.find_one({"email": data['email']}):
+                return {"error": "User already exists"}, 400
             result = self.collection.insert_one(data)
             return {"_id": str(result.inserted_id)}, 201
         except DuplicateKeyError:

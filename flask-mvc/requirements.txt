@@ -1,0 +1,6 @@
+python
+flask
+flask_cors
+facenet_pytorch
+numpy
+pymongo
