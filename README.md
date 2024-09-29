@@ -20,9 +20,9 @@ Dự án này bao gồm hai phần chính: Front-end và Back-end.
 
 ```bash
 project-name/
-├── backend/                 # Backend (Node.js, Express)
+├── backend/                 # Backend (Python)
 │   ├── controllers/         # Các controller xử lý logic API
-│   ├── models/              # Các model của cơ sở dữ liệu (MongoDB, SQL)
+│   ├── models/              # Các model của cơ sở dữ liệu (MongoDB)
 │   ├── routes/              # Định tuyến API
 │   ├── config/              # Cấu hình kết nối DB, bảo mật JWT, v.v.
 │   └── server.py            # Điểm khởi động của backend
