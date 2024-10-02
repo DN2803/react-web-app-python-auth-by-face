@@ -35,6 +35,7 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 import Google from 'assets/images/icons/social-google.svg';
+import { callAPI } from 'utils/api_caller';
 
 // ============================|| FIREBASE - LOGIN ||============================ //
 
@@ -53,15 +54,9 @@ const FirebaseLogin = ({ ...others }) => {
   const handleLogin = async (email, password) => {
     console.error('Login:', email, password);
     try {
-      const response = await fetch('http://localhost:8080/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email, password })
-      });
-      const data = await response.json();
-      if (response.ok) {
+      const response = await callAPI("/login", "POST", {email: email, password: password})
+      const data = await response.data;
+      if (response) {
         console.log('Đăng nhập thành công:', data);
         const token = data.token;
         localStorage.setItem('token', token);
@@ -118,15 +113,9 @@ const FirebaseLogin = ({ ...others }) => {
       const imageData = canvas.toDataURL('image/jpeg');
       // Send the image data to the server
       try {
-        const response = await fetch('http://localhost:8080/api/face_authentication', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ image: imageData })
-        });
+        const response = await callAPI ("/face_authentication", "POST", {image: imageData})
         // Await the JSON response
-        const data = await response.json();
+        const data = await response.data;
         if (response.ok) {
           console.log('Đăng nhập thành công:', data);
           const token = data.token;

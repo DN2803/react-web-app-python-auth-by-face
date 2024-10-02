@@ -36,6 +36,7 @@ import { strengthColor, strengthIndicator } from 'utils/password-strength';
 // assets
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import { callAPI } from 'utils/api_caller';
 
 // ===========================|| FIREBASE - REGISTER ||=========================== //
 
@@ -57,15 +58,9 @@ const FirebaseRegister = ({ ...others }) => {
   const handleRegister = async (name, email, password) => {
     console.error('Register:', name, email, password);
     try {
-      const response = await fetch('http://localhost:8080/api/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ name, email, password })
-      });
-      const data = await response.json();
-      if (response.ok) {
+      const response = await callAPI("/register", "POST", {name, email, password})
+      const data = await response.data;
+      if (response) {
         console.log('Đăng kí thành công:', data);
         navigate('/');
       } else {

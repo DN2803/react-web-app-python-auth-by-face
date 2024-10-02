@@ -7,6 +7,7 @@ import MainCard from 'ui-component/cards/MainCard';
 import SecondaryAction from 'ui-component/cards/CardSecondaryAction';
 import { gridSpacing } from 'store/constant';
 import { parseCookieToObject } from 'utils/cookies';
+import { callAPI } from 'utils/api_caller';
 
 const FaceAuth = () => {
     const [cameraActive, setCameraActive] = useState(false);
@@ -23,14 +24,8 @@ const FaceAuth = () => {
     useEffect(() => {
         const checkFaceAuth = async (userEmail) => {
             try {
-                const response = await fetch('http://localhost:8080/api/check_face_auth', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ email: userEmail }),
-                });
-                if (response.ok) {
+                const response = await callAPI("/check_face_auth", "POST", {email: userEmail})
+                if (response) {
                     setIsFaceIDEnabled(true);
                 }
             } catch (error) {
@@ -56,29 +51,15 @@ const FaceAuth = () => {
         } else if (!newStatus && isFaceIDEnabled) {
             // Nếu tắt FaceID
             try {
-                const response = await fetch('http://localhost:8080/api/remove_face_auth', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ email: email }),
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to update FaceID status');
+                const response = await callAPI("/remove_face_auth", "POST", {email: email})
+                if (response) {
+                    setIsFaceIDEnabled(false);
                 }
-
-                const data = await response.json();
-                console.log('FaceID status updated:', data);
-                setIsFaceIDEnabled(false); // Cập nhật trạng thái FaceID về false
             } catch (error) {
                 console.error('Error updating FaceID status:', error);
             }
         }
     };
-
-
-
     const startCamera = async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -111,15 +92,9 @@ const FaceAuth = () => {
             const imageData = canvas.toDataURL('image/jpeg');
 
             // Send the image data to the server
-            fetch('http://localhost:8080/api/create_face_auth', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ image: imageData, email: email }),
-            })
+            callAPI("/create_face_auth", "POST", {image: imageData, email: email})
                 .then(response => {
-                    if (!response.ok) {
+                    if (!response) {
                         throw new Error('Network response was not ok');
                     }
                     return response.json();
