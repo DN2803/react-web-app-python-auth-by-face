@@ -1,37 +1,61 @@
 from flask import Flask, request, jsonify
-from app.packages.auth.services.auth_service import authenticate_user
-from app.packages.auth.services.auth_service import create_new_user
+from app.packages.auth.services.auth_service import *
+from ..services.auth_service import AuthService
+from ..services.face_service import FaceService
+from ..services.password_service import PasswordService
+from app.controllers.base_controller import BaseController
 from app import app
 
+
+class AuthController(BaseController):
+    def __init__(self, service=AuthService()):
+        super().__init__(service)
+
+    def login(self, data):
+        token = self.service.authenticate(data)
+        print(token)
+        if token:
+            return jsonify({"message": "Login successful", "token": token}), 200
+        else:
+            return jsonify({"error": "Authentication failed"}), 401
+
+    def isExistEmail(self, data):
+        if self.service.isUserEmail(data):
+            return jsonify({"message": "Email exists"}), 200
+        else:
+            return jsonify({"error": "Email does not exist"}), 404
+
+
+# Initialize service instances
+auth_service = AuthService()
+password_service = PasswordService()
+face_service = FaceService()
+
+# Initialize controllers with service instances
+auth_controller = AuthController(auth_service)
+password_controller = AuthController(password_service)
+face_controller = AuthController(face_service)
+
+# Route to check if email exists
+@app.route('/api/email_exist', methods=['POST'])
+def isExistEmail():
+    data = request.json  
+    if not data or 'email' not in data:
+        return jsonify({"error": "Missing email"}), 400
+    return auth_controller.isExistEmail(data)  
+
+
+# Route to handle login
 @app.route('/api/login', methods=['POST'])
 def login():
-    
-    # Nhận thông tin đăng nhập từ request
-    email = request.json.get('email')
-    password = request.json.get('password')
-    if not email or not password:
-        return jsonify({"error": "Missing email or password"}), 400
-    
-    # Gọi auth service để xác thực
-    token = authenticate_user(email, password)
-    
-    if token:
-        return jsonify({"message": "Login successful", "token": token}), 200
+    data = request.json  # Fixed request.json()
+
+    if data:
+        if 'password' in data:
+            return password_controller.login(data)
+        elif 'image' in data:
+            return face_controller.login(data)
     else:
-        return jsonify({"error": "Authentication failed"}), 401
+        return jsonify({"error": "Missing authentication method"}), 400
 
-
-@app.route('/api/register', methods=['POST'])  
-def register():
-    data = request.json
-    if not data or 'email' not in data or 'password' not in data:  # Validate data
-        return jsonify({"error": "Missing required fields"}), 400
-
-    result = create_new_user(data)
-    
-    # Check if result indicates an error (assuming create_new_user returns a tuple with status)
-    if isinstance(result, tuple):
-        return jsonify(result[0]), result[1]
-    
-    return jsonify({"message": "User created successfully"}), 201  # Response for successful registration
 
