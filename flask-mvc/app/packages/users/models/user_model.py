@@ -5,7 +5,6 @@ class UserModel(BaseModel):
         super().__init__(collection_name='users', mongo=mongo)
     def create(self, data):
         try:
-            print (self.collection)
             if super().find_one({"email": data['email']}):
                 return {"error": "User already exists"}, 400
             result = super().insert(data)

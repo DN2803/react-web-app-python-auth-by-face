@@ -1,9 +1,10 @@
-from flask_pymongo import PyMongo
-from pymongo import MongoClient
-from .auth_model import AuthModel
 import numpy as np 
+from app.config.Database import db
+
+from .auth_model import AuthModel
+
 class FaceModel(AuthModel): 
-    def __init__(self, mongo):
+    def __init__(self, mongo=db):
         super().__init__(mongo=mongo)
     def get_authen_method(self, email):
         user = super().get_by_email(email)

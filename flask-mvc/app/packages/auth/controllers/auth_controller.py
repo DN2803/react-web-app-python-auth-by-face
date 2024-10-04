@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import request, jsonify
 from app.packages.auth.services.auth_service import *
 from ..services.auth_service import AuthService
 from ..services.face_service import FaceService
@@ -57,5 +57,4 @@ def login():
             return face_controller.login(data)
     else:
         return jsonify({"error": "Missing authentication method"}), 400
-
 

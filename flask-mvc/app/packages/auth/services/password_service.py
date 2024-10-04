@@ -2,11 +2,11 @@ import jwt
 import os
 from datetime import datetime, timedelta
 from app.config.Hash import *
-from .auth_service import AuthService, db
+from .auth_service import AuthService
 from ..models.password_model import PasswordModel
 class PasswordService(AuthService):
     def __init__(self):
-        super().__init__(model=PasswordModel(db))
+        super().__init__(model=PasswordModel())
     def authenticate(self, data):
         user = self.model.get_by_email(email=data["email"])
         if not user:

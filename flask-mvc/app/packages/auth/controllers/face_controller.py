@@ -3,15 +3,16 @@ import base64
 import cv2
 import numpy as np
 
-from auth_controller import AuthController
+from .auth_controller import AuthController
 from ..services.face_service import FaceService
 from app import app
 
 
 class FaceController(AuthController):
-    def __init__(self, service=FaceService):
+    def __init__(self, service=None):
+        if service is None:
+            service = FaceService()  # Khởi tạo instance của FaceService
         super().__init__(service)
-
     def __json2image (self, image_data):
         if not image_data:  # Validate data
             return None
@@ -29,7 +30,23 @@ class FaceController(AuthController):
         data["image"] = image_data
         return super().login(data)
     
+    def isExistFaceID(self, data):
+        is_not_empty = self.service.check_faceID(data=data)
+        if is_not_empty:  
+            return jsonify({"message": "FaceID status True"}), 200
+        else:
+            return jsonify({"error": "User not found"}), 404
+        
 
+
+face_controller = FaceController()
+@app.route('/api/face_exist', methods= ['POST'])
+def check_face_auth():
+    data = request.json  
+    if not data or 'email' not in data:
+        return jsonify({"error": "Missing email"}), 400
+    print(face_controller)
+    return face_controller.isExistFaceID(data=data) 
 # @app.route('/api/create_face_auth', methods=['POST'])
 # def create_new_auth_method():
 #     data = request.json
@@ -70,10 +87,3 @@ class FaceController(AuthController):
 #         return jsonify({"error": "User not found"}), 404
 # @app.route('/api/check_face_auth', methods= ['POST'])
 # def check_face_auth():
-#     email  = request.json.get('email')
-#     model = face_model.FaceModel(face_service.db)
-#     is_not_empty = model.have_face_feature(email)
-#     if is_not_empty:  
-#         return jsonify({"message": "FaceID status True", "user": is_not_empty}), 200
-#     else:
-#         return jsonify({"error": "User not found"}), 404

@@ -1,5 +1,3 @@
-import torch
-from PIL import Image
 from facenet_pytorch import InceptionResnetV1, MTCNN
 import numpy as np
 from numpy.linalg import norm
@@ -10,14 +8,15 @@ model = InceptionResnetV1(pretrained='vggface2').eval()
 # Sử dụng MTCNN để phát hiện và cắt khuôn mặt
 mtcnn = MTCNN(keep_all=False, device='cpu')  # Giữ lại chỉ một khuôn mặt
 
-from app.config.Database import db
 
 import jwt
 import os
 from datetime import datetime, timedelta
 
+
+
 from .auth_service import AuthService
-from ..models.face_model import FaceModel, db
+from ..models.face_model import FaceModel
 
 def compare(embedding1, embedding2, threshold=0.6):
     # Chuẩn hóa L2 các vector đặc trưng
@@ -32,8 +31,10 @@ def compare(embedding1, embedding2, threshold=0.6):
     else:
         return False
 class FaceService(AuthService):
-    def __init__(self, model = FaceModel(db)):
+    def __init__(self, model = FaceModel()):
         super().__init__(model)
+
+
     
     def authenticate(self, data): 
         # Kiểm tra xem email có tồn tại không
@@ -59,7 +60,13 @@ class FaceService(AuthService):
 
         # Nếu không tìm thấy người dùng nào phù hợp
         return None, None
-
+    
+    def check_faceID(self, data):
+        print (data["email"])
+        if (self.model.get_authen_method(data["email"])):
+            return True
+        else:
+            return False
         
     # def create_new_face_auth(email, image):
     #     face = mtcnn(image)
