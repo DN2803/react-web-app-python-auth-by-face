@@ -18,5 +18,6 @@ class UserModel(BaseModel):
             user["_id"] = str(user["_id"])
             return user
         return None
-
+    def update(self, query, data):
+        return super().update(query, data)
 

@@ -24,7 +24,7 @@ const FaceAuth = () => {
     useEffect(() => {
         const checkFaceAuth = async (userEmail) => {
             try {
-                const response = await callAPI("/check_face_auth", "POST", {email: userEmail})
+                const response = await callAPI("/face_exist", "POST", {email: userEmail})
                 if (response) {
                     setIsFaceIDEnabled(true);
                 }

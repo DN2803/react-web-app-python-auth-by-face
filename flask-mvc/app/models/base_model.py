@@ -29,8 +29,8 @@ class BaseModel():
     def insert(self, data):
         return self.collection.insert_one(data)
     
-    def update(self, object_id, data):
-        return self.collection.update_one({"_id": ObjectId(object_id)}, {"$set": data})
+    def update(self, query, data):
+        return self.collection.update_one(query, {"$set": data})
     
     def delete(self, object_id):
         return self.collection.delete_one({"_id": ObjectId(object_id)})

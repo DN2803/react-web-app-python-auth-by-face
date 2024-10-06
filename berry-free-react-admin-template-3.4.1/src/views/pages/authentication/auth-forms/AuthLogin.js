@@ -160,7 +160,7 @@ const FirebaseLogin = ({ ...others }) => {
         const response = await callAPI ("/login", "POST", {email: email, image: imageData})
         // Await the JSON response
         const data = await response.data;
-        if (response.ok) {
+        if (data) {
           console.log('Đăng nhập thành công:', data);
           const token = data.token;
           localStorage.setItem('token', token);
@@ -232,8 +232,8 @@ const FirebaseLogin = ({ ...others }) => {
 
       <Formik
         initialValues={{
-          email: 'info@codedthemes.com',
-          password: '123456',
+          email: '',
+          password: '',
           submit: null
         }}
         validationSchema={Yup.object().shape({

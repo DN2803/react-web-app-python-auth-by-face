@@ -1,9 +1,8 @@
 from flask import request, jsonify
 from app.packages.auth.services.auth_service import *
 from ..services.auth_service import AuthService
-from ..services.face_service import FaceService
-from ..services.password_service import PasswordService
 from app.controllers.base_controller import BaseController
+
 from app import app
 
 
@@ -13,7 +12,6 @@ class AuthController(BaseController):
 
     def login(self, data):
         token = self.service.authenticate(data)
-        print(token)
         if token:
             return jsonify({"message": "Login successful", "token": token}), 200
         else:
@@ -26,15 +24,8 @@ class AuthController(BaseController):
             return jsonify({"error": "Email does not exist"}), 404
 
 
-# Initialize service instances
-auth_service = AuthService()
-password_service = PasswordService()
-face_service = FaceService()
-
 # Initialize controllers with service instances
-auth_controller = AuthController(auth_service)
-password_controller = AuthController(password_service)
-face_controller = AuthController(face_service)
+auth_controller = AuthController()
 
 # Route to check if email exists
 @app.route('/api/email_exist', methods=['POST'])
@@ -49,7 +40,8 @@ def isExistEmail():
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.json  # Fixed request.json()
-
+    from .face_controller import face_controller
+    from .password_controller import password_controller
     if data:
         if 'password' in data:
             return password_controller.login(data)

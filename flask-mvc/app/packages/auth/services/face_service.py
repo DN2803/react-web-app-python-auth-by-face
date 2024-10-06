@@ -48,8 +48,6 @@ class FaceService(AuthService):
         # Chuyển đổi khuôn mặt thành vector đặc trưng
         face_embedding = model(face.unsqueeze(0))  # Thêm chiều batch
         input_face_feature = face_embedding.squeeze(0).detach().numpy()
-        # Duyệt qua tất cả người dùng và so sánh face_feature
-            # Giả sử có hàm compare_face_features để so sánh hai đặc điểm khuôn mặt
         if compare(input_face_feature, np.array(user['face_feature'])):
                 # Tạo JWT token nếu tìm thấy người dùng
             token = jwt.encode({
@@ -62,22 +60,29 @@ class FaceService(AuthService):
         return None, None
     
     def check_faceID(self, data):
-        print (data["email"])
         if (self.model.get_authen_method(data["email"])):
             return True
         else:
             return False
         
-    # def create_new_face_auth(email, image):
-    #     face = mtcnn(image)
+    def remove_faceID(self, data):
+        if (self.model.remove_face_feature(data["email"])):
+            return True
+        else:
+            return False
 
-    #     if face is not None:
-    #         # Chuyển đổi khuôn mặt thành vector đặc trưng
-    #         face_embedding = model(face.unsqueeze(0))  # Thêm chiều batch
-    #         feature = face_embedding.squeeze(0).detach().numpy().tolist()
+    def add_faceID(self, data):
+        face = mtcnn(data["image"])
 
-    #         save_data = feature
-    #         face_model = FaceModel(db)
-    #         face_model.create_face_user(email, save_data)
+        if face is not None:
+            # Chuyển đổi khuôn mặt thành vector đặc trưng
+            face_embedding = model(face.unsqueeze(0))  # Thêm chiều batch
+            feature = face_embedding.squeeze(0).detach().numpy().tolist()
+
+            save_data = feature
+            
+            self.model.create_face_feature(data["email"], save_data)
+            return True
+        return False
 
     
