@@ -16,7 +16,7 @@ class FaceModel(AuthModel):
     def remove_face_feature(self, email):
         result = self.collection.find_one_and_update(
             {"email": email},
-            {"$unset": {"face_feature": 1}},  # Unset the Face_feature field
+            {"$unset": {"face_feature": 1,"face_image_path": 1}},  # Unset the Face_feature field
             return_document=True
         )
         print(result)
@@ -24,7 +24,7 @@ class FaceModel(AuthModel):
     def create_face_feature(self, email, save_data):
         user = self.collection.find_one({"email": email})
         if user:
-            update_result = super().update({"email": email}, {"face_feature": save_data})
+            update_result = super().update({"email": email}, save_data)
             
             # Check if the update was successful
             if update_result.modified_count > 0:

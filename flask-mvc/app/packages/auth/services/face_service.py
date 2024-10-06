@@ -1,6 +1,7 @@
 from facenet_pytorch import InceptionResnetV1, MTCNN
 import numpy as np
 from numpy.linalg import norm
+from PIL import Image
 
 # Khởi tạo model FaceNet
 model = InceptionResnetV1(pretrained='vggface2').eval()
@@ -73,13 +74,31 @@ class FaceService(AuthService):
 
     def add_faceID(self, data):
         face = mtcnn(data["image"])
+        storage_path = os.getenv('FACE_STORAGE_PATH', 'faces')
 
         if face is not None:
+            # Convert the tensor face to a PIL image
+            face_image = face.permute(1, 2, 0).mul(255).byte().numpy()  # Convert tensor to numpy array
+            pil_image = Image.fromarray(face_image)
+
+            # Save the PIL image to a file (e.g., save as 'face_image.jpg')
+            # Define the file path where the image will be saved
+            image_path_save = f"face_{data['email']}.jpg"
+            image_path = os.path.join(storage_path, image_path_save)
+            
+            # Ensure the directory exists
+            os.makedirs(os.path.dirname(image_path), exist_ok=True)
+            # Save the PIL image to the specified file path
+            pil_image.save(image_path)
             # Chuyển đổi khuôn mặt thành vector đặc trưng
             face_embedding = model(face.unsqueeze(0))  # Thêm chiều batch
             feature = face_embedding.squeeze(0).detach().numpy().tolist()
 
-            save_data = feature
+            save_data = {
+            "face_feature": feature,  # Face feature vector
+            "face_image_path": image_path_save  # File path to the saved image
+        }
+
             
             self.model.create_face_feature(data["email"], save_data)
             return True
