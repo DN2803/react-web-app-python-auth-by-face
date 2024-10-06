@@ -1,7 +1,8 @@
 from pymongo.errors import DuplicateKeyError
 from app.models.base_model import *
+from app.config.Database import db
 class UserModel(BaseModel):
-    def __init__(self, mongo):
+    def __init__(self, mongo=db):
         super().__init__(collection_name='users', mongo=mongo)
     def create(self, data):
         try:

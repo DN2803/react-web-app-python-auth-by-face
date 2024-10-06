@@ -1,4 +1,3 @@
-import numpy as np 
 from app.config.Database import db
 
 from .auth_model import AuthModel

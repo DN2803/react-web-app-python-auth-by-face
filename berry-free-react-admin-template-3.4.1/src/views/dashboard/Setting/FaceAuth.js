@@ -80,7 +80,7 @@ const FaceAuth = () => {
         }
     };
 
-    const sendFrameToServer = () => {
+    const sendFrameToServer = async () => {
         if (videoRef.current) {
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
@@ -92,14 +92,11 @@ const FaceAuth = () => {
             const imageData = canvas.toDataURL('image/jpeg');
 
             // Send the image data to the server
-            callAPI("/create_face_auth", "POST", {image: imageData, email: email})
-                .then(response => {
-                    if (!response) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
+            try {
+                const response = await callAPI("/create_face_auth", "POST", {image: imageData, email: email})
+                const data = await response.data;
+                if (data){
+            
                     console.log('Image sent successfully:', data);
                     clearInterval(intervalIdRef.current); // Dừng interval
                     alert('Face ID successfully created!');
@@ -107,19 +104,19 @@ const FaceAuth = () => {
                     if (videoRef.current && videoRef.current.srcObject) {
                         const stream = videoRef.current.srcObject;
                         const tracks = stream.getTracks();
+                        // Stop all tracks (camera stream)
+                        tracks.forEach((track) => track.stop());
+                        // Clear the interval to stop sending frames
+                        clearInterval(intervalIdRef.current);
+                        setCameraActive(false); // Update state to hide video component
 
-                        tracks.forEach(track => {
-                            track.stop(); // Dừng mỗi track của video
-                        });
-
-                        videoRef.current.srcObject = null; // Xóa stream khỏi video
-                        setCameraActive(false); // Ẩn video element
-                        setIsFaceIDEnabled(true);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error sending image:', error);
-                });
+                    }    
+                    setIsFaceIDEnabled(true);
+                    setIsCreateNew(false);
+                }}
+            catch (error) {
+                    console.error('Error:', error);
+            }
         }
     };
 

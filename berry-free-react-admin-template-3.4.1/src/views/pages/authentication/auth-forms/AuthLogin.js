@@ -289,7 +289,7 @@ const FirebaseLogin = ({ ...others }) => {
                         fullWidth
                         size="large"
                         variant="outlined"
-                        onClick={startCamera(values.email)}
+                        onClick={() => startCamera(values.email)}
                         sx={{
                           color: 'grey.700',
                           backgroundColor: theme.palette.grey[50],
@@ -388,7 +388,7 @@ const FirebaseLogin = ({ ...others }) => {
                 }
                 label="Remember me"
               />
-              <Typography variant="subtitle1" color="secondary" sx={{ textDecoration: 'none', cursor: 'pointer' }}>
+              <Typography onClick={navigate('/pages/forgot-password')}variant="subtitle1" color="secondary" sx={{ textDecoration: 'none', cursor: 'pointer' }}>
                 Forgot Password?
               </Typography>
             </Stack>
