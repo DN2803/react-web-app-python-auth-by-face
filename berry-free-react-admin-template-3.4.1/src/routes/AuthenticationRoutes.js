@@ -3,7 +3,7 @@ import { lazy } from 'react';
 // project imports
 import Loadable from 'ui-component/Loadable';
 import MinimalLayout from 'layout/MinimalLayout';
-import { EmailProvider } from 'context/EmailContext';  // Import EmailProvider
+import { EmailProvider } from 'hooks/context/EmailContext';  // Import EmailProvider
 
 // Lazy load các component
 const AuthLogin3 = Loadable(lazy(() => import('views/pages/authentication/authentication3/Login3')));

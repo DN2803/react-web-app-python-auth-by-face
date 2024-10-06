@@ -14,3 +14,15 @@ class PasswordModel(AuthModel):
             return user["password"]
         else:
             return None
+    def create_new_password(self, email, save_data):
+        user = self.collection.find_one({"email": email})
+        if user:
+            update_result = super().update({"email": email}, save_data)
+            
+            # Check if the update was successful
+            if update_result.modified_count > 0:
+                return {"message": "change password successfully"}, 201
+            else:
+                return {"message": "No changes made to the user"}, 400
+        else:
+            return {"error": "User not found"}, 404
