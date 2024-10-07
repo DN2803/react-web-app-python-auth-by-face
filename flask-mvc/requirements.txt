@@ -4,3 +4,5 @@ flask_cors
 facenet_pytorch
 numpy
 pymongo
+PyJWT
+opencv-python
