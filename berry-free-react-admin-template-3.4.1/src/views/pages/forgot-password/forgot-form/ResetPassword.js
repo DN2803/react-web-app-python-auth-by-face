@@ -48,11 +48,12 @@ const FirebaseResetPassword = ({ ...others }) => {
                 navigate('/');
             } else {
                 console.error('Lỗi thay đổi mật khẩu:', data.message);
-                setErrorLogin(true);
+                navigate('/');
             }
         } catch (error) {
             console.error('Lỗi khi gửi request:', error);
-            setErrorLogin(true);
+            navigate('/');
+
         }
     };
 

@@ -2,6 +2,7 @@ import smtplib
 import random
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import os
 from flask import session
 
 class OTP:
@@ -16,8 +17,8 @@ class OTP:
     def send_otp_email(self):
         """Send OTP code to the specified email address."""
         try:
-            sender_email = "your_email@gmail.com"
-            sender_password = "your_password"
+            sender_email = os.getenv("SENDER_EMAIL")
+            sender_password = os.getenv("SENDER_PASSWORD")
 
             msg = MIMEMultipart()
             msg['From'] = sender_email
@@ -25,7 +26,7 @@ class OTP:
             msg['Subject'] = "Your OTP Code"
 
             # Email body
-            body = f"Your OTP code is: {self.OTP}"
+            body = f"Your OTP code is: {self.otp}"
             msg.attach(MIMEText(body, 'plain'))
 
             # Connect to Gmail's SMTP server
@@ -39,9 +40,10 @@ class OTP:
             server.quit()
             session[self.email] = {'otp': self.otp}
             print("OTP sent successfully!")
-
+            return True
         except Exception as e:
             print(f"Failed to send email: {e}")
+            return False
     def verify_otp(self, email_user, user_otp):
         # Retrieve OTP from session
         generated_otp = session.get(email_user, {}).get('otp')

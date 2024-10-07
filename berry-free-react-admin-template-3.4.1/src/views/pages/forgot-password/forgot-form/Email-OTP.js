@@ -39,36 +39,38 @@ const FirebaseForgotPassword = ({ ...others }) => {
     const navigate = useNavigate();
     const [errorLogin, setErrorLogin] = useState(false);
     const { setEmail } = useEmail();
-
+    const [isExistEmail, setIsExistEmail] = useState(false);
+    const [otpSent, setOtpSent] = useState(false);
     const handleSendEmail = async (email) => {
         try {
-            const response = await callAPI("/send_mail", "POST", { email: email })
-            const data = await response.data;
+            const response = await callAPI("/send_otp", "POST", { email: email })
             if (response) {
-                navigate('/');
-            } else {
-                console.error('Lỗi đăng nhập:', data.message);
+                setOtpSent(true);
+                setIsExistEmail(true);
+            } 
+            else {
+                console.error('Error sending OTP:', response.message);
+                setOtpSent(false);
                 setErrorLogin(true);
             }
         } catch (error) {
-            console.error('Lỗi khi gửi request:', error);
+            console.error('Request error:', error);
             setErrorLogin(true);
+            setOtpSent(false);
         }
     };
-    const checkOTP = async (email) => {
-        // navigate('/pages/reset-password')
+    const handleVerifyOtp = async (email, otp_value) => {
         try {
-            const response = await callAPI("/check_OTP", "POST", { email: email })
-            const data = await response.data;
+            const response = await callAPI("/verify_otp", "POST", { email: email, otp: otp_value })
             if (response) {
                 setEmail(email);
                 navigate('/pages/reset-password');
             } else {
-                console.error('Lỗi đăng nhập:', data.message);
+                console.error('Invalid OTP:', response.message);
                 setErrorLogin(true);
             }
         } catch (error) {
-            console.error('Lỗi khi gửi request:', error);
+            console.error('Error verifying OTP:', error);
             setErrorLogin(true);
         }
     }
@@ -91,16 +93,20 @@ const FirebaseForgotPassword = ({ ...others }) => {
             <Formik
                 initialValues={{
                     email: '',
+                    otp_value: '',
                     submit: null
                 }}
                 validationSchema={Yup.object().shape({
                     email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
+                    otp_value: Yup.string().length(6, 'OTP must be 6 digits').when('otpSent', {
+                        is: true,
+                        then: Yup.string().required('OTP is required')
+                      })
                 })}
                 onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
                     try {
                         if (scriptedRef.current) {
-                            // Gọi hàm handleLogin để gửi dữ liệu về server
-                            await handleSendEmail(values.email);
+                            await handleVerifyOtp(values.email, values.otp_value);
                             setStatus({ success: true });
                             setSubmitting(false);
                         }
@@ -134,6 +140,7 @@ const FirebaseForgotPassword = ({ ...others }) => {
                                 </FormHelperText>
                             )}
                         </FormControl>
+                        {otpSent && (
                         <FormControl fullWidth error={Boolean(touched.otp && errors.otp)} sx={{ ...theme.typography.customInput }}>
                             <InputLabel htmlFor="outlined-adornment-otp">Enter OTP</InputLabel>
                             <OutlinedInput
@@ -152,6 +159,8 @@ const FirebaseForgotPassword = ({ ...others }) => {
                                 </FormHelperText>
                             )}
                         </FormControl>
+                        )}
+                        
                         {
                             errorLogin && (
                                 <div style={{ display: 'flex', alignItems: 'center', color: '#ff6666', marginLeft: '10px' }}>
@@ -166,21 +175,24 @@ const FirebaseForgotPassword = ({ ...others }) => {
                             </Box>
                         )}
 
-                        <Box sx={{ mt: 2 }}>
+                        {!otpSent &&(<Box sx={{ mt: 2 }}>
                             <AnimateButton>
-                                <Button disableElevation disabled={isSubmitting} fullWidth size="large" type="submit" variant="contained" color="secondary">
+                                <Button disableElevation disabled={isSubmitting} fullWidth size="large" type="button" variant="contained" color="secondary" onClick={async () => await handleSendEmail(values.email)}>
                                     Send Mail
                                 </Button>
                             </AnimateButton>
                         </Box>
-                        <Box sx={{ mt: 2 }}>
+                        )}
+                        {isExistEmail && (
+                            <Box sx={{ mt: 2 }}>
                             <AnimateButton>
-                                <Button disableElevation disabled={isSubmitting} fullWidth size="large" type="button" variant="contained" color="secondary" onClick={async () => await checkOTP(values.email)}>
+                                <Button disableElevation disabled={isSubmitting} fullWidth size="large" type="submit" variant="contained" color="secondary">
                                     Reset Password
                                 </Button>
                             </AnimateButton>
                         </Box>
-
+                        )}
+                        
                     </form>
                 )}
             </Formik>
